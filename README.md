@@ -12,8 +12,22 @@ Use this repository as template when developing apps for NetDaemon. Please note 
 6. Install the Hass.io add-on by adding the `https://github.com/helto4real/hassio-add-ons` to the add-on store and install NetDaemon
 7. Run the add-on and check the log that your new apps is intitialized
 
-For detailed information about netdaemon please see [https://helto4real.github.io/netdaemon/](https://helto4real.github.io/netdaemon/).
+For detailed information about netdaemon please see [https://netdaemon.xyz](https://netdaemon.xyz).
 
-## Read this if you are going to deploy apps through HACKS
+## Read this if you are going to deploy apps through HACS
 
 Each app should have it´s own subfolder under the `apps` folder. So rename the `HelloWorld` folder and `HelloWorld.cs` and `HelloWorld.yaml` according to your app. The class name should also be renamed to the same unique app name. We also recommend using namespaces and fully qualified names like the sample included in the template.
+
+<a href="https://www.buymeacoffee.com/ij1qXRM6E" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
+
+## Issues
+
+If you have issues or suggestions of improvements, please [add an issue](https://github.com/net-daemon/netdaemon/issues)
+
+## Discuss the NetDaemon
+
+Please [join the Discord server](https://discord.gg/K3xwfcX) to get support or if you want to contribute and help others.
+
+## Attribution
+
+ICON: Attribution: [chris](https://commons.wikimedia.org/wiki/User:Chrkl) 論
