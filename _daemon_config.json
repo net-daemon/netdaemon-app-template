@@ -3,5 +3,6 @@
   "host": "ip/hostname",
   "port": 8123,
   "ssl": false,
-  "source_folder": "./"
+  "source_folder": "./",
+  "generate_entities": true
 }
