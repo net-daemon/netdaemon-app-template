@@ -9,10 +9,9 @@ Use this repository as template when developing apps for NetDaemon. Please note 
 3. Run dotnet restore in the terminal
 4. Add and edit your apps in the apps folder. There are a few code-snippets you can use.
 5. Copy the edited apps to the folder `netdaemon/apps` under your Hass.io config folder. Even more easy is to use HACS to deploy your APP to Home Assistant
-6. Install the Hass.io add-on by adding the `https://github.com/helto4real/hassio-add-ons` to the add-on store and install NetDaemon
-7. Run the add-on and check the log that your new apps is intitialized
+6. Install add-on or run a docker container. Please see [https://netdaemon.xyz/docs/started/installation](https://netdaemon.xyz/docs/started/installation) for details how to run the daemon.
 
-For detailed information about netdaemon please see [https://netdaemon.xyz](https://netdaemon.xyz).
+For detailed information about using netdaemon please see [https://netdaemon.xyz](https://netdaemon.xyz).
 
 ## Read this if you are going to deploy apps through HACS
 

@@ -14,10 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JoySoftware.NetDaemon.App" Version="0.3.5-alpha" />
-    <PackageReference Include="JoySoftware.NetDaemon.DaemonRunner" Version="0.3.5-alpha" />
+    <PackageReference Include="JoySoftware.NetDaemon.App" Version="0.5.1-beta" />
+    <PackageReference Include="JoySoftware.NetDaemon.DaemonRunner" Version="0.5.1-beta" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.3" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.3" />
+    <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
   </ItemGroup>
 
 

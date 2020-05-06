@@ -1,27 +1,13 @@
 using JoySoftware.HomeAssistant.NetDaemon.DaemonRunner.Service;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
-namespace cs
+namespace Service
 {
-    class Program
+    internal class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            await Runner.Run(args).ConfigureAwait(false);
         }
-
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureServices(s => { s.AddHostedService<RunnerService>(); })
-                .ConfigureLogging(logging =>
-                {
-                    logging.ClearProviders();
-                    logging.AddConsole(options => options.IncludeScopes = false);
-                    logging.AddDebug();
-                    logging.AddFilter("Microsoft", LogLevel.Error);
-                    logging.SetMinimumLevel(LogLevel.Information);
-                });
     }
 }
