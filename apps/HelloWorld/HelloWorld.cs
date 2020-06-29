@@ -7,7 +7,7 @@ namespace HelloWorld
 {
     /// <summary>
     ///     The NetDaemonApp implements async model API
-    ///     currently the default one
+    ///     This API are deprecated please use the Rx one!
     /// </summary>
     public class HelloWorldApp : NetDaemonApp
     {

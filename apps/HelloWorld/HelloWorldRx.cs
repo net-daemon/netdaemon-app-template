@@ -9,6 +9,7 @@ namespace HelloWorldRx
 {
     /// <summary>
     ///     The NetDaemonApp implements System.Reactive API
+    ///     currently the default one
     /// </summary>
     public class HelloWorldRxApp : NetDaemonRxApp
     {
