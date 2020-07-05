@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using JoySoftware.HomeAssistant.NetDaemon.Common;
+using NetDaemon.Common;
 
 // Use unique namespaces for your apps if you going to share with others to avoid
 // conflicting names
@@ -11,11 +11,10 @@ namespace HelloWorld
     /// </summary>
     public class HelloWorldApp : NetDaemonApp
     {
-        public async override Task InitializeAsync()
+        public override async Task InitializeAsync()
         {
-
             Entity("binary_sensor.mypir")
-                .WhenStateChange(to: "on")
+                .WhenStateChange("on")
                 .Call(async (entityId, to, from) =>
                 {
                     Log("My Pir is doing something");
@@ -26,4 +25,3 @@ namespace HelloWorld
         }
     }
 }
-
