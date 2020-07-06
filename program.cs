@@ -1,4 +1,4 @@
-using JoySoftware.HomeAssistant.NetDaemon.DaemonRunner.Service;
+using NetDaemon.Service;
 using System.Threading.Tasks;
 
 namespace Service
