@@ -23,11 +23,13 @@ jobs:
   build-app:
     name: Build app
     runs-on: "ubuntu-latest"
-    container:
-      image: ludeeus/container:netdaemon
     steps:
       - name: Checkout the code
         uses: "actions/checkout@v2"
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x'
 
       - name: Enable problem matchers
         run: echo "::add-matcher::.github/matchers/dotnet.json"
