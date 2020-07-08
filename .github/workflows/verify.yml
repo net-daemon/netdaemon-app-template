@@ -12,9 +12,6 @@ jobs:
       - name: Checkout the code
         uses: "actions/checkout@v2"
 
-      - name: Build app
-        uses: 
-
       - name: HACS validation
         uses: "hacs/integration/action@master"
         with:
