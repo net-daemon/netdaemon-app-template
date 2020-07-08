@@ -1,0 +1,38 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate-hacs:
+    name: Verify HACS
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout the code
+        uses: "actions/checkout@v2"
+
+      - name: Build app
+        uses: 
+
+      - name: HACS validation
+        uses: "hacs/integration/action@master"
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CATEGORY: "netdaemon"
+
+  build-app:
+    name: Build app
+    container:
+      image: ludeeus/container:netdaemon
+    steps:
+      - name: Checkout the code
+        uses: "actions/checkout@v2"
+
+      - name: Enable problem matchers
+        run: echo "::add-matcher::.github/matchers/dotnet.json"
+
+      - name: Build app
+        run: |
+          dotnet restore
+          dotnet build

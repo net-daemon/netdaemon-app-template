@@ -1,0 +1,21 @@
+name: Lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate-hacs:
+    name: Lint
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout the code
+        uses: "actions/checkout@v2"
+
+      - name: JQ
+        run: |
+          jq . hacs.json
+          jq . _daemon_config.json
+          jq . .vscode/tasks.json
+          jq . .vscode/launch.json
+          jq . .devcontainer/devcontainer.json
