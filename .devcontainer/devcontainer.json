@@ -1,16 +1,19 @@
 {
   "name": "Sample NetDaemon App development",
-  "image": "ludeeus/container:netdaemon",
+  "image": "mcr.microsoft.com/dotnet/sdk:5.0.100",
   "postCreateCommand": "dotnet restore",
   "settings": {
     "terminal.integrated.shell.linux": "/bin/bash",
-		"terminal.integrated.fontSize": 12,
-		"editor.fontFamily": "Cascadia Code, Fira Code, Consolas, 'Courier New', monospace",
-		"editor.fontLigatures": true
+    "terminal.integrated.fontSize": 12,
+    "editor.fontFamily": "Cascadia Code, Fira Code, Consolas, 'Courier New', monospace",
+    "editor.fontLigatures": true
+  },
+  "remoteEnv": {
+    "HASS_DISABLE_LOCAL_ASM": "false"
   },
   "extensions": [
-		"ms-dotnettools.csharp",
-		"k--kato.docomment",
-		"eamodio.gitlens"
+    "ms-dotnettools.csharp",
+    "k--kato.docomment",
+    "eamodio.gitlens"
   ]
 }
