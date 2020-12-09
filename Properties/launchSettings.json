@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "daemonapp": {
+      "commandName": "Project",
+      "workingDirectory": "$(SolutionDir)"
+    }
+  }
+}
