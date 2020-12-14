@@ -1,15 +1,15 @@
 # This is the dev setup for NetDaemon
 
-Use this repository as template when developing apps for NetDaemon. Please note that NetDaemon is still under development.
+Use this repository as template when developing apps for NetDaemon. This template is a good starting point for your development environment. It has pre-built structure both for building apps and unit test them. Unit tests fake objects are alpha and the fake API can be changed.
 
 ## Getting started
 
 1. Make new repository with this repo as template
-1. RENAME `_appsettings.json` to `appsettings.json`. Edit the appsettings.json file to provide details about how to connect to Home Assistant. You will need a long lived token, ip, port.
-1. Run dotnet restore in the terminal
-1. Add and edit your apps in the apps folder. There are a few code-snippets you can use.
-1. Copy the edited apps to the folder `netdaemon/apps` under your Hass.io config folder. Even more easy is to use HACS to deploy your APP to Home Assistant
-1. Install add-on or run a docker container. Please see [https://netdaemon.xyz/docs/started/installation](https://netdaemon.xyz/docs/started/installation) for details how to run the daemon.
+2. RENAME `src/_appsettings.json` to `src/appsettings.json`. Edit the appsettings.json file to provide details about how to connect to Home Assistant. You will need a long lived token, ip, port.
+3. Run dotnet restore in the terminal
+4. Add and edit your apps in the `/src/apps` folder. There are a few code-snippets you can use.
+5. Copy the edited `/src/apps` to the folder `netdaemon/apps` under your Hass.io config folder. 
+6. Install NetDaemon runtime using add-on or run a docker container. Please see [https://netdaemon.xyz/docs/started/installation](https://netdaemon.xyz/docs/started/installation) for details how to run the daemon.
 
 For detailed information about using netdaemon please see [https://netdaemon.xyz](https://netdaemon.xyz).
 
