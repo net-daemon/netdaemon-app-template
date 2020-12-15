@@ -10,6 +10,7 @@ namespace HelloWorld
     /// <summary>
     ///     The NetDaemonApp implements System.Reactive API
     ///     currently the default one
+    ///     test modifica commento per reintegro main
     /// </summary>
     public class HelloWorldApp : NetDaemonRxApp
     {
