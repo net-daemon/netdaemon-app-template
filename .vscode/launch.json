@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch (console)",
+            "name": "Debug (console)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
@@ -10,7 +10,10 @@
             "args": [],
             "cwd": "${workspaceFolder}/src",
             "console": "internalConsole",
-            "stopAtEntry": false
+            "stopAtEntry": false,
+            "logging": {
+                "moduleLoad": false
+            }
         },
         {
             "name": ".NET Core Attach",

@@ -8,8 +8,7 @@ using NetDaemon.Common.Reactive;
 namespace HelloWorld
 {
     /// <summary>
-    ///     The NetDaemonApp implements System.Reactive API
-    ///     currently the default one
+    ///     Hello world showcase
     /// </summary>
     public class HelloWorldApp : NetDaemonRxApp
     {

@@ -6,13 +6,7 @@
     <Nullable>enable</Nullable>
  </PropertyGroup>
 
-  <!-- <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup> -->
-
-  <ItemGroup>
+ <ItemGroup>
     <PackageReference Include="JoySoftware.NetDaemon.App" Version="20.51.5-beta" />
     <PackageReference Include="JoySoftware.NetDaemon.DaemonRunner" Version="20.51.5-beta" />
     <PackageReference Include="JoySoftware.NetDaemon.Fakes" Version="20.51.5-beta" />
