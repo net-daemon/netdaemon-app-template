@@ -9,8 +9,7 @@
         "Token": "enter_token_here"
     },
     "NetDaemon": {
-        "SourceFolder": "./",
-        "GenerateEntities": false,
-        "ProjectFolder": ""
+        "AppSource": "./apps",
+        "GenerateEntities": false
     }
 }

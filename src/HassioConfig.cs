@@ -1,4 +1,3 @@
-
 using System.Text.Json.Serialization;
 
 namespace Service
@@ -8,8 +7,8 @@ namespace Service
         [JsonPropertyName("log_level")]
         public string? LogLevel { get; set; }
 
-        [JsonPropertyName("project_folder")]
-        public string? ProjectFolder { get; set; }
+        [JsonPropertyName("app_source")]
+        public string? AppSource { get; set; } = null;
 
         [JsonPropertyName("log_messages")]
         public bool? LogMessages { get; set; }
