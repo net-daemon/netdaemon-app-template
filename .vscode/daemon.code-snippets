@@ -4,18 +4,23 @@
     "prefix": "newapp",
     "body": [
       "using System;",
-      "using System.Threading.Tasks;",
-      "using JoySoftware.HomeAssistant.NetDaemon.Common;",
+      "using System.Reactive.Linq;",
+      "using NetDaemon.Common.Reactive;",
       "",
-      "/// <summary>",
-      "///     App docs",
-      "/// </summary>",
-      "public class $1 : NetDaemonApp",
+      "// Use unique namespaces for your apps if you going to share with others to avoid",
+      "// conflicting names",
+      "namespace Apps",
       "{",
-      "   public override async Task InitializeAsync()",
-      "   {",
-      "       // Add automation setup here",
-      "   }",
+      "    /// <summary>",
+      "    ///      App docs",
+      "    /// </summary>",
+      "    public class $1 : NetDaemonRxApp",
+      "    {",
+      "        public override void Initialize()",
+      "        {",
+      "            Log(\"Hello World\");",
+      "        }",
+      "    }",
       "}"
     ],
     "description": "Daemon app template"
@@ -23,6 +28,15 @@
   "Light-TurnOn": {
     "scope": "csharp",
     "prefix": "lighton",
-    "body": ["await Light(\"light.$1\")", "   .TurnOn().ExecuteAsync();"]
+    "body": [
+      "Entity(\"light.$1\").TurnOn();"
+    ],
+  },
+  "Light-TurnOff": {
+    "scope": "csharp",
+    "prefix": "lightoff",
+    "body": [
+      "Entity(\"light.$1\").TurnOff();"
+    ],
   }
 }

@@ -15,7 +15,7 @@ jobs:
       - name: JQ
         run: |
           jq . hacs.json
-          jq . src/_appsettings.json
+          jq . _appsettings.json
           jq . .vscode/tasks.json
           jq . .vscode/launch.json
           jq . .devcontainer/devcontainer.json

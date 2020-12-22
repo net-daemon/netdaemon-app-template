@@ -4,9 +4,7 @@
   "postCreateCommand": "dotnet restore",
   "settings": {
     "terminal.integrated.shell.linux": "/bin/bash",
-    "terminal.integrated.fontSize": 12,
-    "editor.fontFamily": "Cascadia Code, Fira Code, Consolas, 'Courier New', monospace",
-    "editor.fontLigatures": true
+    "terminal.integrated.fontSize": 10
   },
   "remoteEnv": {
     "HOMEASSISTANT__TOKEN": "${localEnv:HOMEASSISTANT__TOKEN}",
