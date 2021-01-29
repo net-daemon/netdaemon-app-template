@@ -1,2 +1,34 @@
 presence:
   class: Presence.RoomPresence
+  rooms:
+  - name: Study
+    presence_entity_ids:
+      - binary_sensor.office_motion
+      - binary_sensor.study
+    keep_alive_entity_ids:
+      - binary_sensor.eugene_laptop_in_use
+    control_entity_ids:
+      - light.study
+    timeout: 300
+    lux_limit_entity_id: input_number.office_lux_limit
+    lux_entity_id: sensor.office_lux
+
+  - name: Dining
+    presence_entity_ids:
+      - binary_sensor.dining_motion
+      - binary_sensor.dining
+    control_entity_ids:
+      - light.dining    
+    lux_limit: 30
+    lux_entity_id: sensor.dining_lux
+
+  - name: Boys
+    timeout: 300
+    presence_entity_ids:
+      - binary_sensor.jayden_motion
+    control_entity_ids:
+      - light.boys    
+    lux_limit: 1000
+    lux_entity_id: sensor.boys_lux
+    night_time_entity_id: binary_sensor.kids_in_bed
+    night_control_entity_ids: light.boys_1
