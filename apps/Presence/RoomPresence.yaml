@@ -8,7 +8,8 @@ presence:
     keep_alive_entity_ids:
       - binary_sensor.eugene_laptop_in_use
     control_entity_ids:
-      - light.study
+      - light.study   
+    lux_limit: 0
     timeout: 300
     lux_limit_entity_id: input_number.office_lux_limit
     lux_entity_id: sensor.office_lux
@@ -18,9 +19,13 @@ presence:
       - binary_sensor.dining_motion
       - binary_sensor.dining
     control_entity_ids:
-      - light.dining    
-    lux_limit: 30
+      - light.dining     
+    timeout: 300
     lux_entity_id: sensor.dining_lux
+    lux_limit_entity_id: input_number.dining_lux_limit
+    night_time_entity_id: input_boolean.kids_in_bed
+    night_control_entity_ids: 
+        - light.dining_wall_group
 
   - name: Boys
     timeout: 300
@@ -28,7 +33,8 @@ presence:
       - binary_sensor.jayden_motion
     control_entity_ids:
       - light.boys    
-    lux_limit: 1000
+    lux_limit: 50
     lux_entity_id: sensor.boys_lux
-    night_time_entity_id: binary_sensor.kids_in_bed
-    night_control_entity_ids: light.boys_1
+    night_time_entity_id: input_boolean.kids_in_bed
+    night_control_entity_ids: 
+     - light.boys_1

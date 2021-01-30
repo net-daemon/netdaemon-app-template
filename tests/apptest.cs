@@ -59,10 +59,11 @@ public class AppTests : RxAppMock
         var config = new RoomConfig()
         {
             PresenceEntityIds = new List<string>() { "binary_sensor.my_motion_sensor" },
-            ControlEntityIds = new List<string>() { "light.my_light" }
+            ControlEntityIds = new List<string>() { "light.my_light" },
+            Name = "TestRoom"
         };
 
-        _app = new RoomPresenceImplementation(Object, new());
+        _app = new RoomPresenceImplementation(Object, config);
         MockState.Add(new() { EntityId = config.PresenceEntityIds.First() });
         _app.Initialize();
 
@@ -129,7 +130,7 @@ public class AppTests : RxAppMock
     }
 
     [Fact]
-    public void NightLightsDontTurnOnWhenMotionTriggeredWhenNightEntityOff()
+    public void NightLightsDontTurnOnButLightsDoTurnOnWhenMotionTriggeredWhenNightEntityOff()
     {
 
         // ARRANGE
@@ -267,6 +268,36 @@ public class AppTests : RxAppMock
 
         // ASSERT
         foreach (var entityId in config.ControlEntityIds) VerifyEntityTurnOn(entityId, times: Times.Exactly(1));
+    }
+
+    [Fact]
+    public void NightLightsTurnOffWhenNoPresenceAfterTimeout()
+    {
+        var config = new RoomConfig()
+        {
+            Name = "TestRoom",
+            PresenceEntityIds = new List<string>() { "binary_sensor.my_motion_sensor" },
+            ControlEntityIds = new List<string>() { "light.my_light" },
+            NightControlEntityIds = new List<string>() { "light.my_night_light" },
+            NightTimeEntityId = "binary_sensor.night",
+            Timeout = 1
+        };
+        var app = new RoomPresenceImplementation(Object, config);
+
+
+        MockState.Add(new() { EntityId = config.PresenceEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.ControlEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.NightControlEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.NightTimeEntityId, State = "on" });
+
+        app.Initialize();
+        // ACT
+        TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
+        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(1).Ticks);
+        TriggerStateChange(config.PresenceEntityIds.First(), "on", "off");
+        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(2).Ticks);
+        // ASSERT
+        VerifyEntityTurnOff(config.NightControlEntityIds.First(), times: Times.AtLeast(1));
     }
 
     [Fact]
