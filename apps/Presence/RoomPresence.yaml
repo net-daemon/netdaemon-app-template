@@ -2,15 +2,15 @@ presence:
   class: Presence.RoomPresence
   rooms:
   - name: Study
+    timeout: 300
     presence_entity_ids:
       - binary_sensor.office_motion
       - binary_sensor.study
     keep_alive_entity_ids:
       - binary_sensor.eugene_laptop_in_use
+      - binary_sensor.haileys_macbook_air_active
     control_entity_ids:
-      - light.study   
-    lux_limit: 0
-    timeout: 300
+      - light.study       
     lux_limit_entity_id: input_number.office_lux_limit
     lux_entity_id: sensor.office_lux
 
@@ -21,20 +21,105 @@ presence:
     control_entity_ids:
       - light.dining     
     timeout: 300
+    nightTimeout: 90
     lux_entity_id: sensor.dining_lux
     lux_limit_entity_id: input_number.dining_lux_limit
     night_time_entity_id: input_boolean.kids_in_bed
     night_control_entity_ids: 
-        - light.dining_wall_group
+      - light.dining_wall_group
 
   - name: Boys
     timeout: 300
+    nightTimeout: 90
     presence_entity_ids:
       - binary_sensor.jayden_motion
     control_entity_ids:
       - light.boys    
-    lux_limit: 50
     lux_entity_id: sensor.boys_lux
+    lux_limit_entity_id: input_number.boys_lux_limit
     night_time_entity_id: input_boolean.kids_in_bed
     night_control_entity_ids: 
-     - light.boys_1
+      - light.boys_2
+
+  - name: Hallway
+    timeout: 300
+    presence_entity_ids:
+      - binary_sensor.landing_motion
+      - binary_sensor.hallway
+    control_entity_ids:
+      - light.entrance_2    
+    lux_limit_entity_id: input_number.hallway_lux_limit
+    lux_entity_id: sensor.entrance_lux
+ 
+  - name: Entrance
+    timeout: 300
+    presence_entity_ids:
+      - binary_sensor.entrance_motion
+    control_entity_ids:
+      - light.entrance_1    
+    lux_limit_entity_id: input_number.entrance_lux_limit
+    lux_entity_id: sensor.entrance_lux
+
+  - name: Master
+    timeout: 300
+    nightTimeout: 90
+    presence_entity_ids:
+      - binary_sensor.master_motion
+    control_entity_ids:
+      - light.master    
+    lux_entity_id: sensor.master_lux
+    lux_limit_entity_id: input_number.master_lux_limit
+    night_time_entity_id: input_boolean.kids_in_bed
+    night_control_entity_ids: 
+      - light.master_2
+
+  - name: Lounge
+    timeout: 300
+    nightTimeout: 300
+    presence_entity_ids:
+      - binary_sensor.lounge_motion
+      - binary_sensor.lounge
+    control_entity_ids:
+      - light.lounge    
+    lux_entity_id: sensor.lounge_lux
+    lux_limit_entity_id: input_number.lounge_lux_limit
+    night_time_entity_id: input_boolean.kids_in_bed
+    night_control_entity_ids: 
+      - light.floor
+
+  - name: Aaron
+    timeout: 300
+    presence_entity_ids:
+      - binary_sensor.aaron_motion
+    control_entity_ids:
+      - light.aaron    
+    lux_entity_id: sensor.aaron_lux
+    lux_limit_entity_id: input_number.aaron_lux_limit
+
+  - name: Kitchen
+    timeout: 300
+    presence_entity_ids:
+      - binary_sensor.kitchen_motion
+      - binary_sensor.kitchen
+    control_entity_ids:
+      - light.kitchen    
+    lux_entity_id: sensor.kitchen_lux
+    lux_limit_entity_id: input_number.kitchen_lux_limit
+
+  - name: Toilet
+    timeout: 300
+    presence_entity_ids:
+      - binary_sensor.toilet_motion
+    control_entity_ids:
+      - light.toilet    
+    lux_entity_id: sensor.toilet_lux
+    lux_limit_entity_id: input_number.toilet_lux_limit
+
+  - name: Utility
+    timeout: 300
+    presence_entity_ids:
+      - binary_sensor.utility_motion
+    control_entity_ids:
+      - light.utility    
+    lux_entity_id: sensor.utility_lux
+    lux_limit_entity_id: input_number.utility_lux_limit

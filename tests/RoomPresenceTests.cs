@@ -20,12 +20,12 @@ using Xunit;
 ///     Mainly the tests checks if correct underlying call to "CallService"
 ///     has been made.
 /// </remarks>
-public class AppTests : RxAppMock
+public class RoomPresenceTests : RxAppMock
 {
     private RoomPresenceImplementation? _app;
     private readonly TestScheduler _testScheduler = new();
 
-    public AppTests()
+    public RoomPresenceTests()
     {
 
         Setup(n => n.Entity(It.IsAny<string>())).Returns<string>(entityId =>
@@ -280,7 +280,8 @@ public class AppTests : RxAppMock
             ControlEntityIds = new List<string>() { "light.my_light" },
             NightControlEntityIds = new List<string>() { "light.my_night_light" },
             NightTimeEntityId = "binary_sensor.night",
-            Timeout = 1
+            Timeout = 1,
+            NightTimeout = 3
         };
         var app = new RoomPresenceImplementation(Object, config);
 
@@ -293,9 +294,9 @@ public class AppTests : RxAppMock
         app.Initialize();
         // ACT
         TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
-        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(1).Ticks);
-        TriggerStateChange(config.PresenceEntityIds.First(), "on", "off");
         _testScheduler.AdvanceBy(TimeSpan.FromSeconds(2).Ticks);
+        TriggerStateChange(config.PresenceEntityIds.First(), "on", "off");
+        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(3).Ticks);
         // ASSERT
         VerifyEntityTurnOff(config.NightControlEntityIds.First(), times: Times.AtLeast(1));
     }
@@ -309,7 +310,8 @@ public class AppTests : RxAppMock
             Name = "TestRoom",
             PresenceEntityIds = new List<string>() { "binary_sensor.my_motion_sensor" },
             ControlEntityIds = new List<string>() { "light.my_light" },
-            Timeout = 1
+            Timeout = 4,
+            NightTimeout = 1
         };
         var app = new RoomPresenceImplementation(Object, config);
 
@@ -322,7 +324,7 @@ public class AppTests : RxAppMock
         TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
         _testScheduler.AdvanceBy(TimeSpan.FromSeconds(1).Ticks);
         TriggerStateChange(config.PresenceEntityIds.First(), "on", "off");
-        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(2).Ticks);
+        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(4).Ticks);
         // ASSERT
         VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.AtLeast(1));
     }
