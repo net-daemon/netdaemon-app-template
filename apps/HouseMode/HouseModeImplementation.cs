@@ -20,7 +20,7 @@ namespace Presence
         private IScheduler? Scheduler { get; }
         private readonly INetDaemonRxApp _app;
         private IDisposable _timer;
-        
+
         public HouseModeImplementation(INetDaemonRxApp app, IScheduler? scheduler = null)
         {
             Scheduler = scheduler;
@@ -31,29 +31,43 @@ namespace Presence
 
         public void Initialize()
         {
-            _app.CallService("input_select","select_option",new {
-                EntityId = "input_select.house_mode",
-                Option= "Sleeping"
-            });
+            
             _app.Entity("sensor.template_last_motion")
                 .StateChanges
-                .Where(tuple => tuple.New.State == "Master Motion" )
+                .Where(tuple => tuple.New.State == "Master Motion")
                 .Subscribe(s =>
                 {
                     _timer?.Dispose();
-                    _timer = _app.RunIn(TimeSpan.FromMinutes(5), () => _app.Entity("input_select.house_mode").SetState("Night"));
+                    _timer = _app.RunIn(TimeSpan.FromMinutes(5), () => SetHouseMode(HouseModeEnum.Night));
                 });
 
             _app.Entity("sensor.template_last_motion")
                 .StateChanges
                 .Where(tuple => tuple.New.State == "Landing Motion")
-                .Subscribe(s => 
+                .Subscribe(s =>
                 {
-                    if (Now.Hour >=5 && Now.Hour < 7)
-                        _app.Entity("input_select.house_mode").SetState("Morning");
+                    if (Now.Hour >= 5 && Now.Hour < 7)
+                        SetHouseMode(HouseModeEnum.Morning);
                     if (Now.Hour >= 7 && _app.State("input_select.house_mode")?.State == "Morning")
-                        _app.Entity("input_select.house_mode").SetState("Day");
+                        SetHouseMode(HouseModeEnum.Day);
                 });
         }
+
+        private void SetHouseMode(HouseModeEnum mode)
+        {
+            _app.CallService("input_select", "select_option", new
+            {
+                entity_id = "input_select.house_mode",
+                option = mode.ToString()
+            });
+        }
+    }
+
+    internal enum HouseModeEnum
+    {
+        Morning,
+        Day,
+        Night,
+        Sleeping
     }
 }
