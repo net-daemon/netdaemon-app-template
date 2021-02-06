@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
-using System.Timers;
 using NetDaemon.Common.Reactive;
 
 // Use unique namespaces for your apps if you going to share with others to avoid

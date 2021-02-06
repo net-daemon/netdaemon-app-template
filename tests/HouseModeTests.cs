@@ -1,17 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using House;
 using Microsoft.Reactive.Testing;
 using Moq;
-using NetDaemon.Common;
-using NetDaemon.Common.Reactive;
 using NetDaemon.Daemon.Fakes;
-using Presence;
 using Xunit;
 
 /// <summary>
@@ -52,7 +44,11 @@ public class HouseModeTests : RxAppMock
 
         TriggerStateChange("sensor.template_last_motion", "Landing Motion", "Master Motion");
         TestScheduler.AdvanceBy(TimeSpan.FromMinutes(5).Ticks);
-        VerifyEntitySetState("input_select.house_mode", "Night");
+        Verify(x => x.CallService("input_select", "select_option", new
+        {
+            entity_id = "input_select.house_mode",
+            option = "Night"
+        }, It.IsAny<bool>()), Times.Once);
     }
 
     

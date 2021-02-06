@@ -1,4 +1,3 @@
-using System;
 using NetDaemon.Common.Reactive;
 
 namespace Presence
