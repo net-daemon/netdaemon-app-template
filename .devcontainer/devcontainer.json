@@ -1,6 +1,6 @@
 {
   "name": "Sample NetDaemon App development",
-  "image": "mcr.microsoft.com/dotnet/sdk:5.0.100",
+  "image": "mcr.microsoft.com/dotnet/sdk:5.0",
   "postCreateCommand": "dotnet restore *.csproj",
   "settings": {
     "terminal.integrated.shell.linux": "/bin/bash",
