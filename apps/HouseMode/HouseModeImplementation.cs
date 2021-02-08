@@ -27,14 +27,26 @@ namespace Presence
 
         public void Initialize()
         {
-            
+
+            _app.Entity("sensor.template_last_motion")
+                .StateChanges
+                .Subscribe(s =>
+                {
+                    switch (Now.Hour)
+                    {
+                        case >= 18 and < 19:
+                            SetHouseMode(HouseModeEnum.Night);
+                            break;
+                    }
+                });
+
             _app.Entity("sensor.template_last_motion")
                 .StateChanges
                 .Where(tuple => tuple.New.State == "Master Motion")
                 .Subscribe(s =>
                 {
                     _timer?.Dispose();
-                    _timer = _app.RunIn(TimeSpan.FromMinutes(5), () => SetHouseMode(HouseModeEnum.Night));
+                    _timer = _app.RunIn(TimeSpan.FromMinutes(5), () => SetHouseMode(HouseModeEnum.Sleeping));
                 });
 
             _app.Entity("sensor.template_last_motion")
@@ -42,20 +54,21 @@ namespace Presence
                 .Where(tuple => tuple.New.State == "Landing Motion")
                 .Subscribe(s =>
                 {
-                    if (Now.Hour >= 5 && Now.Hour < 7)
-                        SetHouseMode(HouseModeEnum.Morning);
-                    if (Now.Hour >= 7 && _app.State("input_select.house_mode")?.State == "Morning")
-                        SetHouseMode(HouseModeEnum.Day);
+                    switch (Now.Hour)
+                    {
+                        case >= 5 and < 7:
+                            SetHouseMode(HouseModeEnum.Morning);
+                            break;
+                        case >= 7 when _app.State("input_select.house_mode")?.State.ToString().ToLower() == "morning":
+                            SetHouseMode(HouseModeEnum.Day);
+                            break;
+                    }
                 });
         }
 
         private void SetHouseMode(HouseModeEnum mode)
         {
-            _app.CallService("input_select", "select_option", new
-            {
-                entity_id = "input_select.house_mode",
-                option = mode.ToString()
-            });
+            _app.SetState("input_select.house_mode", mode.ToString().ToLower(), null);
         }
     }
 
