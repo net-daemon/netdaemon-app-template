@@ -39,7 +39,7 @@ presence:
     lux_limit_entity_id: input_number.boys_lux_limit
     night_time_entity_id: input_boolean.kids_in_bed
     night_control_entity_ids: 
-      - light.boys_2
+      - light.boys_4
 
   - name: Hallway
     timeout: 300

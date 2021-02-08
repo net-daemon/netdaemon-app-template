@@ -19,7 +19,6 @@ namespace Presence
         private readonly string[] _nightControlEntityIds;
         private readonly TimeSpan _nightTimeout;
         private readonly TimeSpan _normalTimeout;
-
         private readonly string[] _presenceEntityIds;
         private readonly RoomConfig _roomConfig;
         private readonly string _roomPresenceEntityId;
@@ -27,7 +26,7 @@ namespace Presence
 
         private TimeSpan _timeout => IsNightTime ? _nightTimeout : _normalTimeout;
 
-        private string ActiveEntities => string.Join(", ", _keepAliveEntityIds.Where(entityId => _app.State(entityId)?.State == "on"));
+        private string ActiveEntities => string.Join(", ", _presenceEntityIds.Union( _keepAliveEntityIds).Where(entityId => _app.State(entityId)?.State == "on"));
 
         private string Expiry => DateTime.Now.AddSeconds(_timeout.TotalSeconds).ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -52,7 +51,7 @@ namespace Presence
             }
         }
 
-        
+
 
 
         private IDisposable? Timer { get; set; }
@@ -60,24 +59,32 @@ namespace Presence
         public RoomPresenceImplementation(INetDaemonRxApp app, RoomConfig roomConfig)
         {
             _app = app;
-            _roomConfig = roomConfig;
-            _tracePrefix = $"({_roomConfig.Name}) - ";
-            _normalTimeout = TimeSpan.FromSeconds(roomConfig.Timeout != 0 ? roomConfig.Timeout : 300);
-            _nightTimeout = TimeSpan.FromSeconds(roomConfig.NightTimeout != 0 ? roomConfig.NightTimeout : 60);
-            _presenceEntityIds = roomConfig.PresenceEntityIds.ToArray();
-            _controlEntityIds = roomConfig.ControlEntityIds.ToArray();
-            _nightControlEntityIds = roomConfig.NightControlEntityIds?.ToArray() ?? Array.Empty<string>();
-            _keepAliveEntityIds = roomConfig.KeepAliveEntityIds.ToArray();
-            _enabledSwitchEntityId = $"switch.room_presence_enabled_{_roomConfig.Name.ToLower()}";
-            _roomPresenceEntityId = $"sensor.room_presence_{_roomConfig.Name.ToLower()}";
+
+            try
+            {
+                _roomConfig = roomConfig;
+                _tracePrefix = $"({_roomConfig.Name}) - ";
+                _normalTimeout = TimeSpan.FromSeconds(roomConfig.Timeout != 0 ? roomConfig.Timeout : 300);
+                _nightTimeout = TimeSpan.FromSeconds(roomConfig.NightTimeout != 0 ? roomConfig.NightTimeout : 60);
+                _presenceEntityIds = roomConfig.PresenceEntityIds.ToArray();
+                _controlEntityIds = roomConfig.ControlEntityIds.ToArray();
+                _nightControlEntityIds = roomConfig.NightControlEntityIds?.ToArray() ?? Array.Empty<string>();
+                _keepAliveEntityIds = roomConfig.KeepAliveEntityIds.ToArray();
+                _enabledSwitchEntityId = $"switch.room_presence_enabled_{_roomConfig.Name.ToLower()}";
+                _roomPresenceEntityId = $"sensor.room_presence_{_roomConfig.Name.ToLower()}";
+            }
+            catch (Exception e)
+            {
+                _app.LogError(e, "Error in Constructor");
+            }
         }
 
         public void HandleEvent()
         {
             LogTrace("HandleEvent");
-            
+
             if (IsDisabled() || !LuxBelowThreshold()) return;
-            
+
             TurnOnControlEntities();
             ResetTimer();
         }
@@ -93,11 +100,18 @@ namespace Presence
 
         public void Initialize()
         {
-            LogTrace("Initialize");
-            VerifyConfig(_roomConfig);
-            LogConfig(_roomConfig);
-            IsDisabled();
-            SetupSubscriptions();
+            try
+            {
+                LogTrace("Initialize");
+                VerifyConfig(_roomConfig);
+                LogConfig(_roomConfig);
+                IsDisabled();
+                SetupSubscriptions();
+            }
+            catch (Exception e)
+            {
+                _app.LogError(e, "Error in Initialize");
+            }
         }
 
         private IEnumerable<string> GetControlEntities()
@@ -260,7 +274,7 @@ namespace Presence
                 .Union(_roomConfig.PresenceEntityIds)
                 .Union(_roomConfig.KeepAliveEntityIds)
                 .Union(_roomConfig.NightControlEntityIds)
-                .Union(new List<string> {_roomConfig.LuxEntityId ?? "", _roomConfig.LuxLimitEntityId ?? "", _roomConfig.NightTimeEntityId ?? ""})
+                .Union(new List<string> { _roomConfig.LuxEntityId ?? "", _roomConfig.LuxLimitEntityId ?? "", _roomConfig.NightTimeEntityId ?? "" })
                 .Where(e => !string.IsNullOrEmpty(e))
                 .ToList();
 

@@ -330,7 +330,7 @@ public class RoomPresenceTests : RxAppMock
     }
 
     [Fact]
-    public async Task LightsDontTurnOffWhenKeepAliveEnityIsOn()
+    public void LightsDontTurnOffWhenKeepAliveEntityIsOn()
     {
         // ARRANGE
         var config = new RoomConfig()
