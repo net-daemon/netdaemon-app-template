@@ -15,8 +15,12 @@ namespace Niemand
         {
             Entity("input_select.house_mode")
                 .StateChanges
-                .Where(e => e.New?.State.ToLower() == "sleeping")
-                .Subscribe(_ => Entity("light.downstairs").TurnOff());
+                .Where(e => e.New?.State?.ToLower() == "sleeping")
+                .Subscribe(_ =>
+                {
+                    Entity("light.downstairs").TurnOff();
+                    Entity("light.upstairs").TurnOff();
+                });
         }
     }
 }
