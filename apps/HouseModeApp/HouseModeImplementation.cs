@@ -5,12 +5,9 @@ using NetDaemon.Common.Reactive;
 
 // Use unique namespaces for your apps if you going to share with others to avoid
 // conflicting names
-namespace Presence
+namespace HouseModeApp
 {
-    public interface IDateTime
-    {
-        DateTime Now();
-    }
+
     public class HouseModeImplementation
     {
         private IScheduler? Scheduler { get; }

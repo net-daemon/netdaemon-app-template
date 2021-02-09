@@ -1,6 +1,6 @@
 using NetDaemon.Common.Reactive;
 
-namespace Presence
+namespace HouseModeApp
 {
     public class HouseMode : NetDaemonRxApp
     {
