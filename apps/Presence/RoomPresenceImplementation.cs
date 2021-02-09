@@ -35,7 +35,8 @@ namespace Presence
             get
             {
                 if (_roomConfig.NightTimeEntityId == null) return false;
-                return _app.State(_roomConfig.NightTimeEntityId)?.State?.ToString() == "on";
+                string value = _app.State(_roomConfig.NightTimeEntityId)?.State?.ToString() ?? "";
+                return _roomConfig.NightTimeEntityStates.Contains(value);
             }
         }
 

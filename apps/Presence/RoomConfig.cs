@@ -20,6 +20,7 @@ namespace Presence
         public IEnumerable<string> ControlEntityIds { get; set; }
         public IEnumerable<string> KeepAliveEntityIds { get; set; }
         public IEnumerable<string> NightControlEntityIds { get; set; }
+        public IEnumerable<string> NightTimeEntityStates { get; set; }
         public string? NightTimeEntityId { get; set; }
         public int NightTimeout { get; set; }
     }

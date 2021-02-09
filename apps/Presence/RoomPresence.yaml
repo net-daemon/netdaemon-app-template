@@ -24,7 +24,10 @@ presence:
     nightTimeout: 90
     lux_entity_id: sensor.dining_lux
     lux_limit_entity_id: input_number.dining_lux_limit
-    night_time_entity_id: input_boolean.kids_in_bed
+    night_time_entity_id: input_select.house_mode
+    night_time_entity_states:
+      - night
+      - sleeping
     night_control_entity_ids: 
       - light.dining_wall_group
 
@@ -37,7 +40,10 @@ presence:
       - light.boys    
     lux_entity_id: sensor.boys_lux
     lux_limit_entity_id: input_number.boys_lux_limit
-    night_time_entity_id: input_boolean.kids_in_bed
+    night_time_entity_id: input_select.house_mode
+    night_time_entity_states:
+      - night
+      - sleeping
     night_control_entity_ids: 
       - light.boys_4
 
@@ -69,7 +75,10 @@ presence:
       - light.master    
     lux_entity_id: sensor.master_lux
     lux_limit_entity_id: input_number.master_lux_limit
-    night_time_entity_id: input_boolean.kids_in_bed
+    night_time_entity_id: input_select.house_mode
+    night_time_entity_states:
+      - night
+      - sleeping
     night_control_entity_ids: 
       - light.master_2
 
@@ -83,7 +92,10 @@ presence:
       - light.lounge    
     lux_entity_id: sensor.lounge_lux
     lux_limit_entity_id: input_number.lounge_lux_limit
-    night_time_entity_id: input_boolean.kids_in_bed
+    night_time_entity_id: input_select.house_mode
+    night_time_entity_states:
+      - night
+      - sleeping
     night_control_entity_ids: 
       - light.floor
 
