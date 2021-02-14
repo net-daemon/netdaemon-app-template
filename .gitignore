@@ -3,3 +3,4 @@ bin
 appsettings.json
 .vs
 *.gen
+/netdaemon-app-template.sln.DotSettings.user

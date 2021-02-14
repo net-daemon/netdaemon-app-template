@@ -23,5 +23,7 @@ namespace Presence
         public IEnumerable<string> NightTimeEntityStates { get; set; }
         public string? NightTimeEntityId { get; set; }
         public int NightTimeout { get; set; }
+        public string RoomPresenceEntityId => $"sensor.room_presence_{Name.ToLower()}";
+        public string EnabledSwitchEntityId => $"switch.room_presence_enabled_{Name.ToLower()}";
     }
 }

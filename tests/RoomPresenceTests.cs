@@ -23,37 +23,36 @@ using Xunit;
 public class RoomPresenceTests : RxAppMock
 {
     private RoomPresenceImplementation? _app;
-    private readonly TestScheduler _testScheduler = new();
-
+    
     public RoomPresenceTests()
     {
-
-        Setup(n => n.Entity(It.IsAny<string>())).Returns<string>(entityId =>
+        Setup(s => s.RunEvery(It.IsAny<TimeSpan>(), It.IsAny<Action>())).Returns<TimeSpan, Action>((span, action) =>
         {
-            var m = new Mock<IRxEntityBase>();
-            m.Setup(n => n.StateChanges).Returns(StateChangesObservable.Where(f => f.New?.EntityId == entityId && f.New?.State != f.Old?.State));
-            m.Setup(n => n.StateAllChanges).Returns(StateChangesObservable.Where(f => f.New?.EntityId == entityId));
-            m.Setup(e => e.TurnOn(null)).Callback(() =>  UpdateMockState(entityId, "on"));
-            return m.Object;
+            return Observable.Interval(span, TestScheduler)
+                .Subscribe(_ => action());
         });
 
-        Setup(s => s.RunIn(It.IsAny<TimeSpan>(), It.IsAny<Action>()))
-            .Callback<TimeSpan, Action>((span, action) =>
-            {
-                Observable.Timer(span, _testScheduler)
-                    .Subscribe(_ => action());
-            });
+        Setup(n => n.States).Returns(MockState);
+        Setup(e => e.SetState(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<object>(), It.IsAny<bool>())).Callback<string, object, object, bool>((entityId, state, attributes, waitForResponse) => UpdateMockState(entityId, state.ToString() ?? string.Empty, attributes));
+        Setup(s => s.RunIn(It.IsAny<TimeSpan>(), It.IsAny<Action>())).Returns<TimeSpan, Action>((span, action) =>
+        {
+            var result = new DisposableTimerResult(new CancellationToken());
+            Observable.Timer(span, TestScheduler)
+                .Subscribe(_ => action(), token: result.Token);
+            return result;
+        });
     }
 
-    private void UpdateMockState(string entityId, string newState)
+    private void UpdateMockState(string entityId, string newState, object? attributes)
     {
-        var state = MockState.First(e => e.EntityId == entityId);
+        var state = MockState.FirstOrDefault(e => e.EntityId == entityId);
+        if (state == null) return;
         MockState.Remove(state);
-        MockState.Add(new EntityState() {EntityId = entityId, State = newState});
+        MockState.Add(new EntityState() { EntityId = entityId, State = newState, Attribute = attributes });
     }
 
     [Fact]
-    public void LightsDontTurnOnWhenEventStateNewAndOldIsOff()
+    public void LightsDontTurnOnWhenNewAndOldEventStateIsOff()
     {
         // ARRANGE
         var config = new RoomConfig()
@@ -72,6 +71,7 @@ public class RoomPresenceTests : RxAppMock
 
         // ASSERT
         VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.Never());
+        VerifyEntityTurnOn(config.ControlEntityIds.First(), times: Times.Never());
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class RoomPresenceTests : RxAppMock
         // ACT
         TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
         // ASSERT
-        VerifyEntityTurnOn(config.ControlEntityIds.First());
+        VerifyEntityTurnOn(config.ControlEntityIds.First(), times: Times.Once());
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public class RoomPresenceTests : RxAppMock
         // ACT
         TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
         // ASSERT
-        VerifyEntityTurnOn(config.ControlEntityIds.First());
+        VerifyEntityTurnOn(config.ControlEntityIds.First(), times: Times.Once());
     }
 
     [Fact]
@@ -216,7 +216,55 @@ public class RoomPresenceTests : RxAppMock
         // ACT
         TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
         // ASSERT
-        VerifyEntityTurnOn(config.ControlEntityIds.First());
+        VerifyEntityTurnOn(config.ControlEntityIds.First(), times: Times.Once());
+    }
+
+    [Fact]
+    public void LuxLimitReturnsDefaultWhenStateCantBeParsed()
+    {
+
+        // ARRANGE
+        var config = new RoomConfig()
+        {
+            Name = "TestRoom",
+            PresenceEntityIds = new List<string>() { "binary_sensor.my_motion_sensor" },
+            ControlEntityIds = new List<string>() { "light.my_light" },
+            LuxEntityId = "sensor.my_lux",
+            LuxLimit = 30,
+            LuxLimitEntityId = "input_number.my_lux_limit"
+        };
+        var app = new RoomPresenceImplementation(Object, config);
+
+        MockState.Clear();
+        MockState.Add(new() { EntityId = config.PresenceEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.ControlEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.LuxEntityId, State = "Unavailable" });
+        MockState.Add(new() { EntityId = config.LuxLimitEntityId, State = "Unavailable" });
+
+        app.Initialize();
+
+        // ACT
+        TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
+        // ASSERT
+        VerifyEntityTurnOn(config.ControlEntityIds.First(), times: Times.Once());
+    }
+
+    [Fact]
+    public void AppDoesNotFailSilentlyIfExceptionOccurs()
+    {
+
+        // ARRANGE
+        var config = new RoomConfig()
+        {
+            Name = "TestEx"
+        };
+        var app = new RoomPresenceImplementation(Object, config);
+        app.Initialize();
+
+        // ACT
+        
+        // ASSERT
+        
     }
 
     [Fact]
@@ -269,7 +317,7 @@ public class RoomPresenceTests : RxAppMock
         foreach (var entityId in config.PresenceEntityIds) TriggerStateChange(entityId, "off", "on");
 
         // ASSERT
-        foreach (var entityId in config.ControlEntityIds) VerifyEntityTurnOn(entityId, times: Times.Exactly(1));
+        foreach (var entityId in config.ControlEntityIds) VerifyEntityTurnOn(entityId, times: Times.Once());
     }
 
     [Fact]
@@ -297,9 +345,9 @@ public class RoomPresenceTests : RxAppMock
         app.Initialize();
         // ACT
         TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
-        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(2).Ticks);
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(2).Ticks);
         TriggerStateChange(config.PresenceEntityIds.First(), "on", "off");
-        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(3).Ticks);
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(3).Ticks);
         // ASSERT
         VerifyEntityTurnOff(config.NightControlEntityIds.First(), times: Times.AtLeast(1));
     }
@@ -325,11 +373,96 @@ public class RoomPresenceTests : RxAppMock
         app.Initialize();
         // ACT
         TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
-        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(1).Ticks);
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(1).Ticks);
         TriggerStateChange(config.PresenceEntityIds.First(), "on", "off");
-        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(4).Ticks);
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(4).Ticks);
         // ASSERT
         VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.AtLeast(1));
+    }
+
+    [Fact]
+    public void LightGuardStartsTimerForControlEntitiesThatWereNotTurnedOnByPresenceEntities()
+    {
+        // ARRANGE 
+        var config = new RoomConfig()
+        {
+            Name = "TestRoom",
+            PresenceEntityIds = new List<string>() { "binary_sensor.my_motion_sensor" },
+            ControlEntityIds = new List<string>() { "light.my_light" },
+            Timeout = 1
+        };
+        var app = new RoomPresenceImplementation(Object, config);
+
+
+        MockState.Add(new() { EntityId = config.PresenceEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.ControlEntityIds.First(), State = "on" });
+        MockState.Add(new() { EntityId = config.RoomPresenceEntityId, State = "idle" });
+
+        app.Initialize();
+        // ACT
+        TestScheduler.AdvanceBy(TimeSpan.FromMinutes(1).Ticks);
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(config.Timeout).Ticks);
+
+        // ASSERT
+        VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.AtLeast(1));
+    }
+
+    [Fact]
+    public void RoomPresenceOnlyUpdateStateWhenDisabled()
+    {
+        // ARRANGE 
+        var config = new RoomConfig()
+        {
+            Name = "TestRoom",
+            PresenceEntityIds = new List<string>() { "binary_sensor.my_motion_sensor" },
+            ControlEntityIds = new List<string>() { "light.my_light" },
+            Timeout = 1
+        };
+        var app = new RoomPresenceImplementation(Object, config);
+
+
+        MockState.Add(new() { EntityId = config.PresenceEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.ControlEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.RoomPresenceEntityId, State = "idle" });
+        
+
+        app.Initialize();
+        // ACT
+
+        MockState.Add(new() { EntityId = config.EnabledSwitchEntityId, State = "off" });
+        TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
+
+        // ASSERT
+        VerifyState(config.RoomPresenceEntityId.ToLower(), RoomState.Disabled.ToString().ToLower());
+        VerifyEntityTurnOn(config.ControlEntityIds.First(), times: Times.Never());
+        VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.Never());
+    }
+
+    [Fact]
+    public void LightGuardDoesNotStartTimerForControlEntitiesWhenActivePresenceEntitiesExists()
+    {
+        // ARRANGE 
+        var config = new RoomConfig()
+        {
+            Name = "TestRoom",
+            PresenceEntityIds = new List<string>() { "binary_sensor.my_motion_sensor" },
+            ControlEntityIds = new List<string>() { "light.my_light" },
+            Timeout = 2
+        };
+        var app = new RoomPresenceImplementation(Object, config);
+
+
+        MockState.Add(new() { EntityId = config.PresenceEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.ControlEntityIds.First(), State = "on" });
+
+        app.Initialize();
+        // ACT
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(59).Ticks);
+        TriggerStateChange(config.PresenceEntityIds.First(),"off","on");
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(1).Ticks);
+
+        // ASSERT
+        VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.Never());
     }
 
     [Fact]
@@ -356,10 +489,58 @@ public class RoomPresenceTests : RxAppMock
         TriggerStateChange(config.KeepAliveEntityIds.First(), "off", "on");
         TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
 
-        _testScheduler.AdvanceBy(TimeSpan.FromSeconds(1).Ticks);
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(1).Ticks);
         TriggerStateChange(config.PresenceEntityIds.First(), "on", "off");
 
         // ASSERT
         VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.Never());
+    }
+
+    [Fact]
+    public void ScenarioTest1()
+    {
+        // ARRANGE
+        var config = new RoomConfig()
+        {
+            Name = "TestRoom",
+            PresenceEntityIds = new List<string>() { "binary_sensor.my_motion_sensor" },
+            ControlEntityIds = new List<string>() { "light.my_light" },
+            Timeout = 300
+        };
+        var app = new RoomPresenceImplementation(Object, config);
+
+        MockState.Add(new() { EntityId = config.PresenceEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.ControlEntityIds.First(), State = "off" });
+        MockState.Add(new() { EntityId = config.RoomPresenceEntityId, State = "idle" });
+
+        app.Initialize();
+
+        // 1st motion trigger and verify that control entity is on after motion stops
+        TriggerStateChange(config.PresenceEntityIds.First(), "off", "on");
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(90).Ticks); // 1:30
+        TriggerStateChange(config.PresenceEntityIds.First(), "on", "off");
+        
+        VerifyState(config.ControlEntityIds.First(), "on");
+
+        // 2nd motion trigger and another 60 seconds later and verify that control entity is on after motion stops
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(30).Ticks); // 2:00
+        TriggerStateChange(config.PresenceEntityIds.First(), "off", null, "on", new { last_seen = TestScheduler.Now });
+        
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(60).Ticks); // 3:00
+        TriggerStateChange(config.PresenceEntityIds.First(), "on", null, "on", new { last_seen = TestScheduler.Now });
+        
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(90).Ticks); // 4:30
+        TriggerStateChange(config.PresenceEntityIds.First(), "on", "off");
+        
+        VerifyState(config.ControlEntityIds.First(), "on");
+
+        // No more motion and original timeout expired but control entitiy should remain on as 2nd and 3rd motion should have reset the timeout
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(30).Ticks); // 5:00
+        VerifyState(config.ControlEntityIds.First(), "on");
+
+        // Advance to 5 minutes after last motion, now control entity should be off
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(180).Ticks); // 5:00
+        VerifyState(config.ControlEntityIds.First(), "off");
+        VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.Once()); 
     }
 }
