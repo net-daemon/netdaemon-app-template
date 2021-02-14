@@ -6,12 +6,6 @@
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
  </PropertyGroup>
-
-  <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
   <ItemGroup>
     <None Include="apps\**\*.yaml" CopyToPublishDirectory="Always" />
   </ItemGroup>
