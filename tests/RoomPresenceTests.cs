@@ -380,6 +380,32 @@ public class RoomPresenceTests : RxAppMock
         VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.AtLeast(1));
     }
 
+    public new void VerifyState(string entityId, dynamic? state = null, dynamic? attributes = null)
+    {
+        var stateResult = false;
+        if (attributes is not null && attributes is not object)
+            throw new NotSupportedException("attributes needs to be an object");
+
+        if (state is not null && state is not object)
+            throw new NotSupportedException("state needs to be an object");
+
+        var mockState = MockState.First(e => e.EntityId == entityId);
+
+        if (state is not null)
+        {
+            if (attributes is not null)
+                stateResult = mockState.State == state && mockState.Attribute == attributes;
+            else
+                stateResult = mockState.State == state;
+        }
+
+        if (attributes is not null)
+            stateResult = mockState.Attribute == attributes;
+
+        if (!stateResult && attributes is null) throw new ArgumentOutOfRangeException(entityId, $"State does not match, expected state '{state}' but was '{mockState.State}'");
+        if (!stateResult && attributes is not null) throw new ArgumentOutOfRangeException(entityId, $"State does not match, expected state '{state}' but was '{mockState.State}'\nexpected attributes {attributes} but was {mockState.Attribute}");
+    }
+
     [Fact]
     public void LightGuardStartsTimerForControlEntitiesThatWereNotTurnedOnByPresenceEntities()
     {
@@ -389,7 +415,8 @@ public class RoomPresenceTests : RxAppMock
             Name = "TestRoom",
             PresenceEntityIds = new List<string>() { "binary_sensor.my_motion_sensor" },
             ControlEntityIds = new List<string>() { "light.my_light" },
-            Timeout = 1
+            NightControlEntityIds = new List<string>() { "light.my_light_night" },
+            Timeout = 300
         };
         var app = new RoomPresenceImplementation(Object, config);
 
@@ -401,10 +428,13 @@ public class RoomPresenceTests : RxAppMock
         app.Initialize();
         // ACT
         TestScheduler.AdvanceBy(TimeSpan.FromMinutes(1).Ticks);
-        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(config.Timeout).Ticks);
+        VerifyState(config.RoomPresenceEntityId.ToLower(), RoomState.Override.ToString().ToLower());
 
+        TestScheduler.AdvanceBy(TimeSpan.FromSeconds(config.Timeout).Ticks);
         // ASSERT
-        VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.AtLeast(1));
+        VerifyEntityTurnOff(config.ControlEntityIds.First(), times: Times.Once());
+        VerifyEntityTurnOff(config.NightControlEntityIds.First(), times: Times.Once());
+        VerifyState(config.RoomPresenceEntityId.ToLower(), RoomState.Idle.ToString().ToLower());
     }
 
     [Fact]

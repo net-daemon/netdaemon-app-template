@@ -25,7 +25,7 @@ namespace Presence
         private TimeSpan _timeout => IsNightTime ? _nightTimeout : _normalTimeout;
 
         private string ActiveEntities => string.Join(", ", _presenceEntityIds.Union(_keepAliveEntityIds).Where(entityId => _app.State(entityId)?.State == "on"));
-        private bool ActivePresence => !string.IsNullOrEmpty(ActiveEntities);
+        private bool NoPresence => string.IsNullOrEmpty(ActiveEntities);
 
         private string Expiry => DateTime.Now.AddSeconds(_timeout.TotalSeconds).ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -112,12 +112,15 @@ namespace Presence
         private IEnumerable<string> GetControlEntities()
         {
             LogTrace("GetControlEntities");
+
+            if (RoomIs(RoomState.Override))
+                return _controlEntityIds.Union(_nightControlEntityIds);
+            
             if (!_nightControlEntityIds.Any())
             {
                 LogTrace("Night Control entities doesnt exists");
                 return _controlEntityIds;
             }
-
 
             if (IsNightTime)
             {
@@ -129,14 +132,21 @@ namespace Presence
             return _controlEntityIds;
         }
 
-        private bool RoomIsIdle => _app.State(_roomConfig.RoomPresenceEntityId)?.State?.ToString() == RoomState.Idle.ToString().ToLower();
+        private bool RoomIs(RoomState roomState)
+        {
+            if (_app.States.Any(e=>e.EntityId == _roomConfig.RoomPresenceEntityId))
+                return _app.State(_roomConfig.RoomPresenceEntityId)?.State?.ToString() == roomState.ToString().ToLower();
+            
+            return
+                false;
+        }
 
         private void HandleTimer()
         {
-            if (ActivePresence)
-                ResetTimer();
-            else
+            if (NoPresence)
                 TurnOffControlEntities();
+            else
+                ResetTimer();
         }
 
         private bool IsDisabled()
@@ -201,7 +211,7 @@ namespace Presence
                 return luxEntityVal;
             }
 
-            LogTrace($"Could Not Parse {_roomConfig.LuxLimitEntityId} state");
+            LogTrace($"Could Not Parse {_roomConfig.LuxLimitEntityId} roomState");
             return 1000;
         }
 
@@ -218,7 +228,7 @@ namespace Presence
             switch (roomState)
             {
                 case RoomState.Idle:
-                    _app.SetState(_roomConfig.RoomPresenceEntityId, "idle", new
+                    _app.SetState(_roomConfig.RoomPresenceEntityId, roomState.ToString().ToLower(), new
                     {
                         PresenceEntityIds = _presenceEntityIds,
                         KeepAliveEntities,
@@ -229,7 +239,7 @@ namespace Presence
                     });
                     break;
                 case RoomState.Active:
-                    _app.SetState(_roomConfig.RoomPresenceEntityId, "active", new
+                    _app.SetState(_roomConfig.RoomPresenceEntityId, roomState.ToString().ToLower(), new
                     {
                         ActiveEntities,
                         PresenceEntityIds = _presenceEntityIds,
@@ -240,7 +250,18 @@ namespace Presence
                     });
                     break;
                 case RoomState.Disabled:
-                    _app.SetState(_roomConfig.RoomPresenceEntityId, "disabled", null);
+                    _app.SetState(_roomConfig.RoomPresenceEntityId, roomState.ToString().ToLower(), null);
+                    break;
+                case RoomState.Override:
+                    _app.SetState(_roomConfig.RoomPresenceEntityId, roomState.ToString().ToLower(), new
+                    {
+                        ActiveEntities,
+                        PresenceEntityIds = _presenceEntityIds,
+                        KeepAliveEntities,
+                        ControlEntityIds = _controlEntityIds,
+                        NightControlEntityIds = _nightControlEntityIds,
+                        Expiry
+                    });
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(roomState), roomState, null);
@@ -262,8 +283,13 @@ namespace Presence
             _app.RunEvery(TimeSpan.FromMinutes(1), () =>
             { 
                 foreach (var entityId in _controlEntityIds.Union(_nightControlEntityIds))
-                    if (_app.States.Any(e => e.EntityId == entityId && e.State == "on") && !ActivePresence && RoomIsIdle)
-                        HandleTimer();
+                    if (_app.States.Any(e => e.EntityId == entityId && e.State == "on") && NoPresence && RoomIs(RoomState.Idle))
+                    {
+                        LogTrace("Override Timer");
+                        Timer?.Dispose();
+                        Timer = _app.RunIn(_timeout, HandleTimer);
+                        SetRoomState(RoomState.Override);
+                    }
             });
         }
 
@@ -305,6 +331,7 @@ namespace Presence
     {
         Idle,
         Active,
-        Disabled
+        Disabled,
+        Override
     }
 }
