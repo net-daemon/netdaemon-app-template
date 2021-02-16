@@ -34,7 +34,7 @@ namespace HouseModeApp
         {
             switch (Now.Hour)
             {
-                case < 7 or >= 19:
+                case < 7 or > 19:
                     SetHouseMode(HouseModeEnum.Night);
                     if (LastMotion == "Master Motion")
                     {

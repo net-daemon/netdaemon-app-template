@@ -12,40 +12,16 @@ namespace Niemand
     {
         private readonly INetDaemonRxApp _app;
         private readonly NotificationEngineConfig _config;
+        private readonly Dictionary<string, Action> _messageBuilders = new();
         public string InstantMessage { get; private set; }
         public string VoiceMessage { get; private set; }
-
 
         public NotificationEngineImpl(INetDaemonRxApp app, NotificationEngineConfig config)
         {
             _app = app;
             _config = config;
-        }
-
-        public void CarDoorsAreOpen()
-        {
-            if (!GetEntityState(_config.CarDoorsEntityId, out var state)) return;
-            if (state == "on")
-            {
-                VoiceMessage = "Your car's doors are open";
-                InstantMessage = "Car doors are open";
-            }
-        }
-
-
-        public void CarIsLocked()
-        {
-            if (!GetEntityState(_config.CarLockedEntityId, out var state)) return;
-            if (state == "on")
-            {
-                VoiceMessage = "Your car is not locked";
-                InstantMessage = "Car is not locked";
-            }
-        }
-
-        public void GenerateMessages(List<string>? options)
-        {
-            foreach (var option in options) _app.LogInformation(option);
+            _messageBuilders.Add("CarLocked", CarIsLocked);
+            _messageBuilders.Add("CarOpen", CarDoorsAreOpen);
         }
 
         public void Initialize()
@@ -53,10 +29,72 @@ namespace Niemand
             _app.LogInformation(_config.CarLockedEntityId);
         }
 
+        public void Notify(List<string> options)
+        {
+            ClearMessages();
+
+            foreach (var option in options) _messageBuilders[option].Invoke();
+
+            _app.LogInformation($"VoiceMessage: {VoiceMessage}");
+            _app.LogInformation($"InstantMessage: {InstantMessage}");
+
+            SendNotifications();
+        }
+
+        private void BuildMessages((string voiceMessage, string instantMessage) caller)
+        {
+            VoiceMessage += "<s>" + caller.voiceMessage + "</s>";
+            InstantMessage += caller.instantMessage + Environment.NewLine;
+        }
+
+        private void CarDoorsAreOpen()
+        {
+            BuildMessages(GetStateOnMessage(_config.CarDoorsEntityId, "Your car's doors are open", "Car doors are open"));
+        }
+
+        private void CarIsLocked()
+        {
+            BuildMessages(GetStateOnMessage(_config.CarLockedEntityId, "Your car is not locked", "Car is not locked"));
+        }
+
+        private void ClearMessages()
+        {
+            VoiceMessage = "";
+            InstantMessage = "";
+        }
+
         private bool GetEntityState(string entityId, out string? state)
         {
             state = _app.States.FirstOrDefault(e => e.EntityId == entityId)?.State?.ToString();
             return state != null;
+        }
+
+        private (string voiceMessage, string instantMessage) GetStateOnMessage(string entityId, string voiceMessage, string instantMessage)
+        {
+            return StateIsOn(entityId) ? (voiceMessage, instantMessage) : (string.Empty, string.Empty);
+        }
+
+        private void SendNotifications()
+        {
+            _app.CallService("notify", "alexa_media", new
+            {
+                message = $"<voice name=\"Emma\">{VoiceMessage}</voice>",
+                target = new List<string> {"media_player.downstairs"},
+                data = new
+                {
+                    type = "announce"
+                }
+            });
+
+            _app.CallService("notify", "twinstead", new
+            {
+                message = InstantMessage
+            });
+        }
+
+        private bool StateIsOn(string entityId, string onState = "on")
+        {
+            return GetEntityState(entityId, out var state) && state.ToLower() == onState;
         }
     }
 
@@ -67,21 +105,23 @@ namespace Niemand
         public string CarDoorsEntityId { get; set; }
         public string CarLockedEntityId { get; set; }
 
-        [HomeAssistantServiceCall]
-        public void GenerateMessages(dynamic data)
-        {
-            var options = (data.options as object[] ?? Array.Empty<object>())
-                .Select(o => o as string)
-                .Where(o => !string.IsNullOrEmpty(o))!
-                .ToList<string>();
-            _impl.GenerateMessages(options);
-        }
-
         public override void Initialize()
         {
             var config = new NotificationEngineConfig(CarLockedEntityId, CarDoorsEntityId);
             _impl = new NotificationEngineImpl(this, config);
             _impl.Initialize();
+        }
+
+        [HomeAssistantServiceCall]
+        public void Notify(dynamic data)
+        {
+            if (!((IDictionary<string, object>)data).ContainsKey("options")) return;
+
+            var options = (data.options as object[] ?? Array.Empty<object>())
+                .Select(o => o as string)
+                .Where(o => !string.IsNullOrEmpty(o))!
+                .ToList<string>();
+            _impl.Notify(options);
         }
     }
 
