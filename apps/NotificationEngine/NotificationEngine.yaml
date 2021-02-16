@@ -1,0 +1,4 @@
+niemand_notification_engine:
+  class: Niemand.NotificationEngine
+  car_locked_entity_id: binary_sensor.audi_q7_doors_lock
+  car_doors_entity_id: binary_sensor.audi_q7_doors
